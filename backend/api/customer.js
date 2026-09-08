@@ -376,4 +376,12 @@ router.get(
         error
       );
 
-      return res.status(
+      return res.status(500).json({
+        message:
+          "Unable to retrieve shipment information.",
+      });
+    }
+  }
+);
+
+export default router;
