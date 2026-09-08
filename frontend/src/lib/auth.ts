@@ -9,118 +9,144 @@ import type {
   UserRole,
 } from "../types";
 
-const SIGNED_IN_KEY =
-  "uscourier_signed_in";
+const SIGNED_IN_KEY = "uscourier_signed_in";
+const USER_KEY = "uscourier_user";
 
-const USER_KEY =
-  "uscourier_user";
+const MANAGEMENT_ROLES = [
+  "super_admin",
+  "admin",
+  "manager",
+  "courier",
+  "support",
+  "viewer",
+] as const;
+
+export function setStoredUser(user: User): void {
+  localStorage.setItem(SIGNED_IN_KEY, "true");
+  localStorage.setItem(USER_KEY, JSON.stringify(user));
+}
 
 export function getStoredUser(): User | null {
+  const stored = localStorage.getItem(USER_KEY);
+
+  if (!stored) {
+    return null;
+  }
+
   try {
-    const value =
-      localStorage.getItem(USER_KEY);
-
-    if (!value) {
-      return null;
-    }
-
-    return JSON.parse(value) as User;
+    return JSON.parse(stored) as User;
   } catch {
+    clearStoredAuth();
     return null;
   }
 }
 
-export function setStoredUser(
-  user: User
-): void {
-  localStorage.setItem(
-    SIGNED_IN_KEY,
-    "true"
-  );
-
-  localStorage.setItem(
-    USER_KEY,
-    JSON.stringify(user)
-  );
-}
-
 export function clearStoredAuth(): void {
-  localStorage.removeItem(
-    SIGNED_IN_KEY
-  );
-
-  localStorage.removeItem(
-    USER_KEY
-  );
-
-  localStorage.removeItem(
-    "uscourier_access_token"
-  );
+  localStorage.removeItem(SIGNED_IN_KEY);
+  localStorage.removeItem(USER_KEY);
+  localStorage.removeItem("uscourier_access_token");
 }
 
 export function isSignedIn(): boolean {
-  return (
-    localStorage.getItem(
-      SIGNED_IN_KEY
-    ) === "true"
-  );
+  return localStorage.getItem(SIGNED_IN_KEY) === "true";
 }
 
-/**
- * Return the currently stored authenticated user.
- *
- * This is intentionally synchronous so existing
- * dashboard components can use it without awaiting
- * an API request.
- */
 export function getAuthUser(): User | null {
   return getStoredUser();
 }
 
-/**
- * Return the user's role from the supplied user
- * or from the locally stored authenticated user.
- */
 export function getUserRole(
   user?: User | null
 ): UserRole | null {
-  const currentUser =
-    user ?? getStoredUser();
+  const currentUser = user ?? getStoredUser();
 
   if (!currentUser) {
     return null;
   }
 
-  const role =
+  const rawRole =
     currentUser.role ??
     currentUser.user_role ??
     currentUser.userRole;
 
+  if (typeof rawRole !== "string") {
+    return null;
+  }
+
+  const role = rawRole.trim().toLowerCase();
+
+  if (role === "customer") {
+    return "customer";
+  }
+
   if (
-    role === "customer" ||
-    role === "admin" ||
-    role === "manager" ||
-    role === "courier"
+    MANAGEMENT_ROLES.includes(
+      role as (typeof MANAGEMENT_ROLES)[number]
+    )
   ) {
-    return role;
+    return role as UserRole;
   }
 
   return null;
 }
 
-/**
- * Authenticate a user through the API and
- * persist the returned user locally.
- */
+export function isManagementUser(
+  user?: User | null
+): boolean {
+  const role = getUserRole(user);
+
+  return Boolean(
+    role &&
+    role !== "customer"
+  );
+}
+
+export function getDashboardPath(
+  user?: User | null
+): string {
+  return isManagementUser(user)
+    ? "/admin"
+    : "/dashboard";
+}
+
+export function getRoleLabel(
+  user?: User | null
+): string {
+  switch (getUserRole(user)) {
+    case "super_admin":
+      return "Super Admin";
+
+    case "admin":
+      return "Administrator";
+
+    case "manager":
+      return "Manager";
+
+    case "courier":
+      return "Courier";
+
+    case "support":
+      return "Support";
+
+    case "viewer":
+      return "Viewer";
+
+    case "customer":
+      return "Customer";
+
+    default:
+      return "User";
+  }
+}
+
 export async function signIn(
   email: string,
   password: string
 ): Promise<User> {
-  const user =
-    await apiSignIn(
-      email,
-      password
-    );
+  const user = await apiSignIn(
+    email,
+    password
+  );
 
   setStoredUser(user);
 
@@ -132,32 +158,10 @@ export function getStoredRole():
   return getUserRole();
 }
 
-export function getDashboardPath(
-  user?: User | null
-): string {
-  const role =
-    getUserRole(user);
-
-  if (
-    role === "admin" ||
-    role === "manager" ||
-    role === "courier"
-  ) {
-    return "/admin";
-  }
-
-  return "/dashboard";
-}
-
-/**
- * Synchronize local authentication state
- * with the backend session.
- */
 export async function refreshAuth():
   Promise<User | null> {
   try {
-    const user =
-      await getCurrentUser();
+    const user = await getCurrentUser();
 
     if (!user) {
       clearStoredAuth();
@@ -173,10 +177,6 @@ export async function refreshAuth():
   }
 }
 
-/**
- * Sign out through the API and always clear
- * local authentication state.
- */
 export async function signOut():
   Promise<void> {
   try {
@@ -186,12 +186,6 @@ export async function signOut():
   }
 }
 
-/**
- * Require an authenticated user.
- *
- * Returns null when no valid backend session
- * exists.
- */
 export async function requireAuth():
   Promise<User | null> {
   return refreshAuth();

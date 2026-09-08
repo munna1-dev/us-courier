@@ -5,6 +5,7 @@ import {
 
 import TrackingForm from "../components/tracking/TrackingForm";
 import TrackingStatus from "../components/tracking/TrackingStatus";
+import TrackingProgress from "../components/tracking/TrackingProgress";
 import TrackingTimeline from "../components/tracking/TrackingTimeline";
 
 import {
@@ -157,6 +158,13 @@ export default function TrackingPage({
                 <TrackingStatus
                   result={result}
                 />
+
+                {result.shipment && (
+                  <TrackingProgress
+                    shipment={result.shipment}
+                    events={result.events}
+                  />
+                )}
 
                 <TrackingTimeline
                   events={

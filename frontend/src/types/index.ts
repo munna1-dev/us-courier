@@ -9,9 +9,12 @@ export type ShipmentStatus =
 
 export type UserRole =
   | "customer"
+  | "super_admin"
   | "admin"
   | "manager"
-  | "courier";
+  | "courier"
+  | "support"
+  | "viewer";
 
 export type AccountStatus =
   | "active"

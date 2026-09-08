@@ -2,6 +2,8 @@ import { Router } from "express";
 
 import {
   requireAdmin,
+  requirePermission,
+  hasPermission,
 } from "../auth/auth.js";
 
 import {
@@ -73,6 +75,7 @@ router.get(
  */
 router.get(
   "/dashboard",
+  requirePermission("report.read"),
   async (_req, res) => {
     try {
       const supabase =
@@ -245,6 +248,7 @@ router.get(
  */
 router.get(
   "/users",
+  requirePermission("user.read"),
   async (req, res) => {
     try {
       const supabase =
@@ -347,6 +351,7 @@ router.get(
  */
 router.get(
   "/users/:id",
+  requirePermission("user.read"),
   async (req, res) => {
     try {
       const supabase =
@@ -401,6 +406,7 @@ router.get(
  */
 router.put(
   "/users/:id",
+  requirePermission("user.update"),
   async (req, res) => {
     const userId =
       cleanString(
@@ -464,10 +470,57 @@ router.put(
         req.body.role !==
         undefined
       ) {
-        updates.role =
+        if (
+          !hasPermission(
+            req.auth.role,
+            "role.assign"
+          )
+        ) {
+          return res.status(403).json({
+            message:
+              "You do not have permission to assign user roles.",
+          });
+        }
+
+        const requestedRole =
           cleanString(
             req.body.role
-          );
+          ).toLowerCase();
+
+        const allowedRoles = [
+          "customer",
+          "super_admin",
+          "admin",
+          "manager",
+          "courier",
+          "support",
+          "viewer",
+        ];
+
+        if (
+          !allowedRoles.includes(
+            requestedRole
+          )
+        ) {
+          return res.status(400).json({
+            message:
+              "Invalid user role.",
+          });
+        }
+
+        if (
+          requestedRole ===
+            "super_admin" &&
+          !req.auth.isSuperAdmin
+        ) {
+          return res.status(403).json({
+            message:
+              "Only the Super Admin can assign the Super Admin role.",
+          });
+        }
+
+        updates.role =
+          requestedRole;
       }
 
       if (
@@ -564,6 +617,7 @@ router.put(
  */
 router.delete(
   "/users/:id",
+  requirePermission("user.delete"),
   async (req, res) => {
     const userId =
       cleanString(
@@ -650,6 +704,7 @@ router.delete(
  */
 router.get(
   "/couriers",
+  requirePermission("operations.manage"),
   async (_req, res) => {
     try {
       const supabase =
@@ -710,6 +765,7 @@ router.get(
  */
 router.post(
   "/couriers",
+  requirePermission("operations.manage"),
   async (req, res) => {
     const firstName =
       cleanString(
@@ -840,6 +896,7 @@ router.post(
  */
 router.delete(
   "/couriers/:id",
+  requirePermission("operations.manage"),
   async (req, res) => {
     try {
       const supabase =
@@ -905,6 +962,7 @@ router.delete(
  */
 router.get(
   "/facilities",
+  requirePermission("operations.manage"),
   async (_req, res) => {
     try {
       const supabase =
@@ -954,6 +1012,7 @@ router.get(
  */
 router.post(
   "/facilities",
+  requirePermission("operations.manage"),
   async (req, res) => {
     const name =
       cleanString(
@@ -1095,6 +1154,7 @@ router.post(
  */
 router.delete(
   "/facilities/:id",
+  requirePermission("operations.manage"),
   async (req, res) => {
     try {
       const supabase =
@@ -1160,6 +1220,7 @@ router.delete(
  */
 router.get(
   "/shipments",
+  requirePermission("shipment.read"),
   async (req, res) => {
     try {
       const supabase =
@@ -1242,6 +1303,7 @@ router.get(
  */
 router.post(
   "/shipments",
+  requirePermission("shipment.create"),
   async (req, res) => {
     const senderName =
       cleanString(
@@ -1488,6 +1550,7 @@ router.post(
  */
 router.put(
   "/shipments/:id",
+  requirePermission("shipment.update"),
   async (req, res) => {
     const shipmentId =
       cleanString(
@@ -1692,6 +1755,7 @@ router.put(
  */
 router.get(
   "/shipments/:id/history",
+  requirePermission("tracking.read"),
   async (req, res) => {
     try {
       const supabase =
@@ -1745,6 +1809,7 @@ router.get(
  */
 router.post(
   "/shipments/:id/events",
+  requirePermission("shipment.dispatch"),
   async (req, res) => {
     const status =
       cleanString(
@@ -1861,6 +1926,7 @@ router.post(
  */
 router.delete(
   "/shipments/:id",
+  requirePermission("shipment.delete"),
   async (req, res) => {
     try {
       const supabase =

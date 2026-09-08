@@ -20,6 +20,7 @@ import AdminShipmentPage from "./pages/AdminShipmentPage";
 import AdminTrackingPage from "./pages/AdminTrackingPage";
 import AdminReportsPage from "./pages/AdminReportsPage";
 import AdminSettingsPage from "./pages/AdminSettingsPage";
+import AdminGuard from "./pages/AdminGuard";
 
 function getPathname(): string {
   return window.location.pathname
@@ -69,14 +70,14 @@ function renderPage(
     pathname === "/admin" ||
     pathname === "/admin/dashboard"
   ) {
-    return <AdminPage />;
+    return <AdminGuard><AdminPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/users" ||
     pathname === "/admin/users/"
   ) {
-    return <AdminUsersPage />;
+    return <AdminGuard><AdminUsersPage /></AdminGuard>;
   }
 
   if (
@@ -84,21 +85,21 @@ function renderPage(
       pathname
     )
   ) {
-    return <AdminUserPage />;
+    return <AdminGuard><AdminUserPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/couriers" ||
     pathname === "/admin/couriers/"
   ) {
-    return <AdminCouriersPage />;
+    return <AdminGuard><AdminCouriersPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/facilities" ||
     pathname === "/admin/facilities/"
   ) {
-    return <AdminFacilitiesPage />;
+    return <AdminGuard><AdminFacilitiesPage /></AdminGuard>;
   }
 
   if (
@@ -106,14 +107,14 @@ function renderPage(
       pathname
     )
   ) {
-    return <AdminFacilityPage />;
+    return <AdminGuard><AdminFacilityPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/shipments" ||
     pathname === "/admin/shipments/"
   ) {
-    return <AdminShipmentsPage />;
+    return <AdminGuard><AdminShipmentsPage /></AdminGuard>;
   }
 
   if (
@@ -121,28 +122,28 @@ function renderPage(
       pathname
     )
   ) {
-    return <AdminShipmentPage />;
+    return <AdminGuard><AdminShipmentPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/tracking" ||
     pathname === "/admin/tracking/"
   ) {
-    return <AdminTrackingPage />;
+    return <AdminGuard><AdminTrackingPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/reports" ||
     pathname === "/admin/reports/"
   ) {
-    return <AdminReportsPage />;
+    return <AdminGuard><AdminReportsPage /></AdminGuard>;
   }
 
   if (
     pathname === "/admin/settings" ||
     pathname === "/admin/settings/"
   ) {
-    return <AdminSettingsPage />;
+    return <AdminGuard><AdminSettingsPage /></AdminGuard>;
   }
 
   return (

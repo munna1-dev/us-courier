@@ -8,6 +8,7 @@ import Button from "../common/Button";
 import Input from "../common/Input";
 
 import { useAuth } from "../../hooks/useAuth";
+import { getDashboardPath } from "../../lib/auth";
 import type { AuthResult } from "../../types";
 
 interface LoginFormProps {
@@ -23,11 +24,11 @@ function isValidEmail(email: string): boolean {
   );
 }
 
-function navigateToDashboard(): void {
+function navigateToDashboard(result: AuthResult): void {
   window.history.pushState(
     {},
     "",
-    "/dashboard"
+    getDashboardPath(result.user)
   );
 
   window.dispatchEvent(
@@ -131,7 +132,7 @@ export default function LoginForm({
         return;
       }
 
-      navigateToDashboard();
+      navigateToDashboard(result);
     } catch (err) {
       const message =
         err instanceof Error

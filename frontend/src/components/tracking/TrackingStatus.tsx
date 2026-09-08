@@ -6,6 +6,10 @@ interface TrackingStatusProps {
   result: TrackingResult;
 }
 
+function normalizeStatus(value: string): string {
+  return value.trim().toLowerCase().replace(/[\s-]+/g, "_");
+}
+
 function labelStatus(
   value: string,
 ): string {
@@ -32,9 +36,11 @@ export default function TrackingStatus({
     return null;
   }
 
-  const status =
+  const rawStatus =
     shipment.status ||
     "pending";
+
+  const status = normalizeStatus(rawStatus);
 
   const location =
     shipment.current_location ??
@@ -42,6 +48,8 @@ export default function TrackingStatus({
     "In transit";
 
   const estimated =
+    shipment.estimated_delivery ??
+    shipment.estimatedDelivery ??
     shipment.estimated_delivery_date ??
     shipment.estimatedDeliveryDate;
 
