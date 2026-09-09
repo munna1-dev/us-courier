@@ -74,22 +74,6 @@ async function request<T>(
     );
   }
 
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem(
-          "uscourier_access_token"
-        )
-      : null;
-
-  if (
-    token &&
-    !headers.has("Authorization")
-  ) {
-    headers.set(
-      "Authorization",
-      `Bearer ${token}`
-    );
-  }
 
   const response = await fetch(
     `${API_BASE}${path}`,
